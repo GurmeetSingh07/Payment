@@ -1,6 +1,6 @@
 const userData = require("../model/userSchema");
 const razorpayInstance = require("../helper/razorpay");
-const razorData = require("../model/razorpay");
+
 const crypto = require("crypto");
 const webToken = require("../middleware/genjwt");
 class userController {
@@ -59,7 +59,7 @@ class userController {
       } else {
         const token = webToken(usercheck);
         return res
-          .status(206)
+          .status(200)
           .json({ message: "welcome back", success: true, token });
       }
     } catch (e) {
@@ -111,7 +111,7 @@ class userController {
               console.log(adding);
 
               return res
-                .status(404)
+                .status(200)
                 .json({ message: "order place successfully", success: true });
             }
           }
