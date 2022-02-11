@@ -72,8 +72,16 @@ class userController {
 
   createOrder = async (req, res) => {
     try {
-      const { amount, currency, receipt, notes } = req.body;
-      console.log(req.body);
+      const { userName, amount, currency, receipt, notes } = req.body;
+      const userinfo = await userData.findOne({ userName });
+      const id = userinfo._id;
+
+      if (!userinfo) {
+        return res
+          .status(404)
+          .json({ message: "user not found", success: false });
+      }
+
       if (!amount || !currency || !receipt || !notes) {
         return res
           .status(206)
@@ -81,24 +89,30 @@ class userController {
       } else {
         razorpayInstance.orders.create(
           { amount, currency, receipt, notes },
-
-          (err, order) => {
+          async (err, order) => {
             if (!err) {
-              const adding = new razorData({
-                id: order.id,
-                amount: amount,
-                currency: currency,
-                receipt: receipt,
-                notes: notes,
-              });
-              const result = adding.save();
-              return res.status(200).json({
-                message: "order succesfully placed",
-                success: true,
-                order,
-              });
+              const adding = await userData.findByIdAndUpdate(
+                { _id: id },
+                {
+                  $set: {
+                    orderDetails: [
+                      {
+                        id: order.id,
+                        amount: amount,
+                        currency: currency,
+                        receipt: receipt,
+                        notes: notes,
+                      },
+                    ],
+                  },
+                },
+                { new: true }
+              );
+              console.log(adding);
 
-              console.log(order);
+              return res
+                .status(404)
+                .json({ message: "order place successfully", success: true });
             }
           }
         );
